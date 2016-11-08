@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- 优先使用最新版本 IE 和 Chrome -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <meta name="renderer" content="webkit">
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <meta name="author" content="前端工程师 - tuxingsheng"/>
+    <title>实现ajax.js</title>
+</head>
+<body>
+
+</body>
+<script src="../../dist/ajax/ajax.min.js"></script>
+<script>
+    // api --->
+    // $http.ajax
+    // $http.get
+    // $http.post
+    // $http.put
+    // $http.delete
+
+    // example_01
+    /*$http.ajax({
+        url: './ajax.json',
+        type: 'post',
+        data: {},
+        dataType: 'json',
+        success: function (res) {
+            console.log(res);
+        }
+    });*/
+
+    // example_02
+    $http.ajax('./ajax.json', {
+        type: 'post',
+        data: {},
+        dataType: 'json',
+        success: function (res) {
+            console.log(res);
+        }
+    });
+
+</script>
+</html>

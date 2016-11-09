@@ -25,15 +25,32 @@
     // $http.delete
 
     // example_01
-    $http.ajax('./ajax.json', {
+    //    $http.ajax('./ajax.json', {
+    //        type: 'post',
+    //        data: {},
+    //        dataType: 'json'
+    //    }).then(function (res) {
+    //        console.log(res);
+    //    }).catch(function (err) {
+    //        console.log(err);
+    //    });
+
+    var p1 = $http.ajax('./ajax.json', {
         type: 'post',
         data: {},
         dataType: 'json'
-    }).then(function (res) {
-        console.log(res);
-    }).catch(function (err) {
-        console.log(err);
     });
+
+    var p2 = $http.ajax('./ajax1.json', {
+        type: 'post',
+        data: {},
+        dataType: 'json'
+    });
+
+    $http.race([p2, p1]).then(function (result) {
+        console.log(result);
+    });
+
 
 </script>
 </html>

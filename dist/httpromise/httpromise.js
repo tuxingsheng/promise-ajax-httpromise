@@ -2,7 +2,7 @@
 /*
  * 实现一个promise的异步编译
  * author: tuxingsheng
- * createTime: 2016-11-08 18:00:52
+ * createTime: 2016-11-09 11:34:58
  */
 
 (function (global, factory) {
@@ -26,6 +26,8 @@ var run = function run() {
         queue.shift();
     }
 };
+
+var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var PENDING = 'pending';
 var RESOLVED = 'resolved';
@@ -65,6 +67,40 @@ Promise.reject = function (r) {
     });
 };
 
+Promise.all = function (iterable) {
+    return new Promise(function (resolve, reject) {
+        var count = 0,
+            result = [];
+
+        if (iterable.length === 0) {
+            resolve(result);
+        }
+
+        function resolver(i) {
+            return function (x) {
+                result[i] = x;
+                count += 1;
+
+                if (count === iterable.length) {
+                    resolve(result);
+                }
+            };
+        }
+
+        for (var i = 0; i < iterable.length; i++) {
+            Promise.resolve(iterable[i]).then(resolver(i), reject);
+        }
+    });
+};
+
+Promise.race = function (iterable) {
+    return new Promise(function (resolve, reject) {
+        for (var i = 0; i < iterable.length; i++) {
+            Promise.resolve(iterable[i]).then(resolve, reject);
+        }
+    });
+};
+
 var $promise = Promise.prototype;
 
 $promise.constructor = Promise;
@@ -73,6 +109,35 @@ $promise.resolve = function (x) {
     var promise = this;
 
     if (x != promise) {
+
+        // 如果传入的是一个Promise
+        if (x instanceof Promise) {
+            var _ret = function () {
+
+                var called = false,
+                    then = x && x['then'];
+
+                if (x && (typeof x === 'undefined' ? 'undefined' : _typeof$1(x)) === 'object' && typeof then === 'function') {
+                    then.call(x, function (x) {
+                        if (!called) {
+                            promise.resolve(x);
+                        }
+                        called = true;
+                    }, function (r) {
+                        if (!called) {
+                            promise.reject(r);
+                        }
+                        called = true;
+                    });
+                    return {
+                        v: void 0
+                    };
+                }
+            }();
+
+            if ((typeof _ret === 'undefined' ? 'undefined' : _typeof$1(_ret)) === "object") return _ret.v;
+        }
+
         promise.state = RESOLVED;
         promise.value = x;
         promise.notify();
@@ -150,6 +215,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 function $http() {}
 
 $http.prototype.constructor = $http;
+
+$http.prototype.all = function (iterable) {
+    return Promise.all(iterable);
+};
+
+$http.prototype.race = function (iterable) {
+    return Promise.race(iterable);
+};
 
 $http.prototype.post = function (url, options) {
     http.ajaxSettings.type = 'POST';

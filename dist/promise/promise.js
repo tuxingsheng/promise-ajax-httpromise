@@ -2,7 +2,7 @@
 /*
  * 实现一个promise的异步编译
  * author: tuxingsheng
- * createTime: 2016-11-08 18:00:52
+ * createTime: 2016-11-09 11:34:58
  */
 
 (function (global, factory) {
@@ -26,6 +26,8 @@ function run() {
         queue.shift();
     }
 }
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var PENDING = 'pending';
 var RESOLVED = 'resolved';
@@ -65,6 +67,40 @@ Promise$1.reject = function (r) {
     });
 };
 
+Promise$1.all = function (iterable) {
+    return new Promise$1(function (resolve, reject) {
+        var count = 0,
+            result = [];
+
+        if (iterable.length === 0) {
+            resolve(result);
+        }
+
+        function resolver(i) {
+            return function (x) {
+                result[i] = x;
+                count += 1;
+
+                if (count === iterable.length) {
+                    resolve(result);
+                }
+            };
+        }
+
+        for (var i = 0; i < iterable.length; i++) {
+            Promise$1.resolve(iterable[i]).then(resolver(i), reject);
+        }
+    });
+};
+
+Promise$1.race = function (iterable) {
+    return new Promise$1(function (resolve, reject) {
+        for (var i = 0; i < iterable.length; i++) {
+            Promise$1.resolve(iterable[i]).then(resolve, reject);
+        }
+    });
+};
+
 var $promise = Promise$1.prototype;
 
 $promise.constructor = Promise$1;
@@ -73,6 +109,35 @@ $promise.resolve = function (x) {
     var promise = this;
 
     if (x != promise) {
+
+        // 如果传入的是一个Promise
+        if (x instanceof Promise$1) {
+            var _ret = function () {
+
+                var called = false,
+                    then = x && x['then'];
+
+                if (x && (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && typeof then === 'function') {
+                    then.call(x, function (x) {
+                        if (!called) {
+                            promise.resolve(x);
+                        }
+                        called = true;
+                    }, function (r) {
+                        if (!called) {
+                            promise.reject(r);
+                        }
+                        called = true;
+                    });
+                    return {
+                        v: void 0
+                    };
+                }
+            }();
+
+            if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+        }
+
         promise.state = RESOLVED;
         promise.value = x;
         promise.notify();

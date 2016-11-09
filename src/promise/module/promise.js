@@ -39,8 +39,41 @@ Promise.reject = function (r) {
     });
 };
 
+Promise.all = function (iterable) {
+    return new Promise(function (resolve, reject) {
+        let count = 0,
+            result = [];
 
-var $promise = Promise.prototype;
+        if (iterable.length === 0) {
+            resolve(result);
+        }
+
+        function resolver(i) {
+            return function (x) {
+                result[i] = x;
+                count += 1;
+
+                if (count === iterable.length) {
+                    resolve(result);
+                }
+            };
+        }
+
+        for (let i = 0; i < iterable.length; i++) {
+            Promise.resolve(iterable[i]).then(resolver(i), reject);
+        }
+    })
+};
+
+Promise.race = function (iterable) {
+    return new Promise(function (resolve, reject) {
+        for (let i = 0; i < iterable.length; i++) {
+            Promise.resolve(iterable[i]).then(resolve, reject);
+        }
+    });
+};
+
+const $promise = Promise.prototype;
 
 $promise.constructor = Promise;
 
@@ -48,6 +81,29 @@ $promise.resolve = function (x) {
     const promise = this;
 
     if (x != promise) {
+
+        // 如果传入的是一个Promise
+        if (x instanceof Promise) {
+
+            let called = false,
+                then = x && x['then'];
+
+            if (x && typeof x === 'object' && typeof then === 'function') {
+                then.call(x, function (x) {
+                    if (!called) {
+                        promise.resolve(x);
+                    }
+                    called = true;
+                }, function (r) {
+                    if (!called) {
+                        promise.reject(r);
+                    }
+                    called = true;
+                });
+                return;
+            }
+        }
+
         promise.state = RESOLVED;
         promise.value = x;
         promise.notify();
@@ -116,12 +172,6 @@ $promise.notify = function () {
     });
 };
 
-
 function isFunction(obj) {
     return typeof obj === 'function';
 }
-
-
-
-
-

@@ -6,6 +6,14 @@ export function $http() {
 
 $http.prototype.constructor = $http;
 
+$http.prototype.all = function (iterable) {
+    return Promise.all(iterable);
+};
+
+$http.prototype.race = function (iterable) {
+    return Promise.race(iterable);
+};
+
 $http.prototype.post = function (url, options) {
     http.ajaxSettings.type = 'POST';
     return this.ajax(url, options)

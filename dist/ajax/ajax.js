@@ -2,7 +2,7 @@
 /*
  * 实现一个promise的异步编译
  * author: tuxingsheng
- * createTime: 2016-11-08 18:00:52
+ * createTime: 2016-11-09 11:34:58
  */
 
 (function (global, factory) {
